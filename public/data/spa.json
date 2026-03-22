@@ -1,0 +1,5 @@
+[
+  { "id": "eau-rouge", "name": "Eau Rouge", "order": 1, "type": "fast", "gps": null, "heading": null, "verified": false, "notes": "Famous high-speed left-hander." },
+  { "id": "raidillon", "name": "Raidillon", "order": 2, "type": "fast", "gps": null, "heading": null, "verified": false, "notes": "Steep uphill right-hander exiting Eau Rouge." },
+  { "id": "pouhon", "name": "Pouhon", "order": 7, "type": "fast", "gps": null, "heading": null, "verified": false, "notes": "Very fast double-apex left-hander." }
+]

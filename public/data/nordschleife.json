@@ -1,0 +1,5 @@
+[
+  { "id": "flugplatz", "name": "Flugplatz", "order": 5, "type": "fast", "gps": null, "heading": null, "verified": false, "notes": "Cars go airborne here." },
+  { "id": "karussell", "name": "Caracciola-Karussell", "order": 17, "type": "medium", "gps": null, "heading": null, "verified": false, "notes": "Iconic banked hairpin." },
+  { "id": "pflanzgarten", "name": "Pflanzgarten", "order": 23, "type": "fast", "gps": null, "heading": null, "verified": false, "notes": "Three-part fast section, cars airborne." }
+]

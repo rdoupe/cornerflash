@@ -7,7 +7,7 @@
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Opening section out of the pits. Series of medium-speed corners through the forest."
+    "notes": "Opening section after the T13/start area. Series of medium-speed bends through parkland. Sometimes split into Tiergarten 1 and 2 in finer-grained guides but treated as one section here."
   },
   {
     "id": "hatzenbach",
@@ -17,7 +17,7 @@
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Series of fast S-bends through the forest. Rhythm section requiring commitment."
+    "notes": "Flowing series of S-bends through the forest requiring commitment and smooth inputs. Named after the Hatzenbach stream. Some sources further split into Hatzenbach 1 and 2."
   },
   {
     "id": "hocheichen",
@@ -27,7 +27,7 @@
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Fast right-hander. Name means 'high oaks'."
+    "notes": "Fast right-hander after Hatzenbach. Name means 'high oaks'. Leads onto the run toward Quiddelbacher Höhe."
   },
   {
     "id": "quiddelbacher-hoehe",
@@ -37,7 +37,7 @@
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "High-speed crest section. Significant elevation change."
+    "notes": "High-speed crest section with significant elevation change. Blind over the brow. Name refers to the Quiddelbach valley. Also spelled Quiddelbacher Hoehe."
   },
   {
     "id": "flugplatz",
@@ -47,7 +47,7 @@
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Name means 'airfield'. Famous for cars going airborne over the crest. One of the most iconic sections."
+    "notes": "Name means 'airfield' — cars get airborne over the crest. Named after an old airfield that formerly occupied the site. One of the most iconic and photographed sections."
   },
   {
     "id": "schwedenkreuz",
@@ -57,7 +57,7 @@
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Very fast left-hander. Name means 'Swedish Cross'. Historically dangerous section."
+    "notes": "Very fast, slightly downhill left-hander. Name means 'Swedish Cross', referencing a roadside memorial. Historically dangerous; one of the fastest sections on the circuit."
   },
   {
     "id": "aremberg",
@@ -67,7 +67,7 @@
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Downhill right-hander. Named after the nearby Aremberg castle. Major braking from high speed."
+    "notes": "Downhill right-hander requiring heavy braking from high speed. Named after the nearby Aremberg castle ruins. Entry is blind over a crest."
   },
   {
     "id": "fuchsroehre",
@@ -77,216 +77,276 @@
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Name means 'Fox Hollow'. Fast downhill section through a valley. Cars get airborne at the bottom."
+    "notes": "Name means 'Fox Hollow'. Fast downhill compression through a valley; cars get airborne at the bottom. Continuous commitment section with limited braking opportunity."
   },
   {
-    "id": "adenauer-forst",
-    "name": "Adenauer Forst",
+    "id": "breidscheid",
+    "name": "Breidscheid",
     "order": 9,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Technical section through Adenau forest. Multiple direction changes. Named after the nearby town of Adenau."
+    "notes": "Section after Fuchsröhre approaching the village of Breidscheid. Medium-speed right-hand bend. Listed as a distinct section on nring.info and in VLN/NLS sector maps."
   },
   {
-    "id": "metzgesfeld",
-    "name": "Metzgesfeld",
+    "id": "adenauer-forst",
+    "name": "Adenauer Forst",
     "order": 10,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Series of medium-speed corners."
+    "notes": "Technical section of direction changes through Adenau forest. Named after the nearby town. Adenauer Forst 1 (right) and 2 (left) are distinct apexes treated as one section."
   },
   {
-    "id": "kallenhard",
-    "name": "Kallenhard",
+    "id": "metzgesfeld",
+    "name": "Metzgesfeld",
     "order": 11,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Right-hand section, medium speed."
+    "notes": "Medium-speed right-left sequence after Adenauer Forst. Leads toward Kallenhard."
   },
   {
-    "id": "mercedes-arena",
-    "name": "Mercedes-Arena",
+    "id": "kallenhard",
+    "name": "Kallenhard",
     "order": 12,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Technical sequence of corners. Tight, demanding section."
+    "notes": "Right-hand section with a crest on exit. Medium speed, requires precise apex placement."
   },
   {
-    "id": "ex-muehle",
-    "name": "Ex-Mühle",
+    "id": "spiegelkurve",
+    "name": "Spiegelkurve",
     "order": 13,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Name means 'former mill'. Right-hand corner."
+    "notes": "Name means 'mirror corner'. Left-hand corner between Kallenhard and Mercedes-Arena. Listed as a distinct section on nring.info. Some guides fold it into the Mercedes-Arena approach."
   },
   {
-    "id": "bergwerk",
-    "name": "Bergwerk",
+    "id": "mercedes-arena",
+    "name": "Mercedes-Arena",
     "order": 14,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Name means 'mine' or 'mine works'. Slow right-hander, historically one of the most dangerous corners."
+    "notes": "Sponsorship name for a tight technical sequence, previously known as Mutkurve on older maps. Demands precision through an enclosed, twisting series of corners."
   },
   {
-    "id": "kesselchen",
-    "name": "Kesselchen",
+    "id": "ex-muehle",
+    "name": "Ex-Mühle",
     "order": 15,
-    "type": "fast",
+    "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Fast section across an open plateau. Name means 'little cauldron'. Long high-speed commitment required."
+    "notes": "Name means 'former mill', referencing an old mill that once stood here. Right-hand corner leading toward the Steilstrecke and Bergwerk."
   },
   {
-    "id": "klostertal",
-    "name": "Klostertal",
+    "id": "steilstrecke",
+    "name": "Steilstrecke",
     "order": 16,
     "type": "fast",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Name means 'monastery valley'. Fast downhill section with limited visibility."
+    "notes": "Name means 'steep section'. Fast downhill plunge from Ex-Mühle toward Bergwerk. Significant elevation drop. Listed on nring.info and oversteer48.com as a distinct named section."
   },
   {
-    "id": "caracciola-karussell",
-    "name": "Caracciola-Karussell",
+    "id": "bergwerk",
+    "name": "Bergwerk",
     "order": 17,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "The iconic banked hairpin. Named after Rudolf Caracciola. The concrete banking is original from the 1920s. One of the most famous corners in motorsport."
+    "notes": "Name means 'mine works'. Slow right-hander at the bottom of a valley. Historically one of the most dangerous corners; site of Niki Lauda's 1976 accident."
   },
   {
-    "id": "hohe-acht",
-    "name": "Hohe Acht",
+    "id": "kesselchen",
+    "name": "Kesselchen",
     "order": 18,
-    "type": "medium",
+    "type": "fast",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Named after the highest peak in the region at 747m. Right-hander near the circuit's highest point."
+    "notes": "Fast section across an open plateau. Name means 'little cauldron'. Long high-speed commitment across exposed terrain following the climb out of Bergwerk."
   },
   {
-    "id": "wippermann",
-    "name": "Wippermann",
+    "id": "klostertal",
+    "name": "Klostertal",
     "order": 19,
-    "type": "medium",
+    "type": "fast",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Series of corners named after a local family."
+    "notes": "Name means 'monastery valley'. Fast downhill section through a narrow tree-lined corridor. Limited forward visibility adds to the challenge."
   },
   {
-    "id": "eschbach",
-    "name": "Eschbach",
+    "id": "mutkurve",
+    "name": "Mutkurve",
     "order": 20,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Right-hand section. Named after the local Eschbach stream."
+    "notes": "Name means 'courage corner'. Medium-speed right-hander between Klostertal and Karussell. Some older sources use Mutkurve as an alternative name for the Mercedes-Arena section; nring.info lists it separately here as a distinct corner before the Karussell approach."
   },
   {
-    "id": "brunnchen",
-    "name": "Brünnchen",
+    "id": "caracciola-karussell",
+    "name": "Caracciola-Karussell",
     "order": 21,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Series of two corners (Brünnchen 1 and 2). Popular spectator area. Name means 'little spring/well'."
+    "notes": "The iconic banked hairpin with original 1920s concrete banking. Named after Rudolf Caracciola. One of the most famous and photographed corners in motorsport. Also called simply Karussell."
   },
   {
-    "id": "eiffelblitz",
-    "name": "Eiffelblitz",
+    "id": "hohe-acht",
+    "name": "Hohe Acht",
     "order": 22,
-    "type": "fast",
+    "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Fast section. Name means 'Eifel lightning'."
+    "notes": "Named after the highest Eifel peak at 747m nearby. Right-hander near the circuit's highest point. The road here once passed directly past the summit marker."
   },
   {
-    "id": "pflanzgarten",
-    "name": "Pflanzgarten",
+    "id": "hedwigshoehe",
+    "name": "Hedwigshöhe",
     "order": 23,
-    "type": "fast",
+    "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Three-part fast section (Pflanzgarten 1, 2, 3). Name means 'plant garden'. Cars get airborne. Extremely demanding at speed."
+    "notes": "Medium-speed section immediately after Hohe Acht on the descent. Named after a local landmark. Listed as a distinct section on nring.info and oversteer48.com. Also spelled Hedwigshoehe."
   },
   {
-    "id": "stefan-bellof-s",
-    "name": "Stefan Bellof S",
+    "id": "wippermann",
+    "name": "Wippermann",
     "order": 24,
-    "type": "fast",
+    "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Named after Stefan Bellof who set the legendary 6:11 lap record here in 1983. Fast S-bend."
+    "notes": "Series of corners named after a local family. Wippermann 1 and 2 treated as one section. Medium-speed direction changes on the descent toward Eschbach."
   },
   {
-    "id": "schwalbenschwanz",
-    "name": "Schwalbenschwanz",
+    "id": "eschbach",
+    "name": "Eschbach",
     "order": 25,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Name means 'swallowtail'. Series of right-left corners through the forest."
+    "notes": "Right-hand section named after the local Eschbach stream. Transitions between Wippermann and Brünnchen."
   },
   {
-    "id": "galgenkopf",
-    "name": "Galgenkopf",
+    "id": "brunnchen",
+    "name": "Brünnchen",
     "order": 26,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Name means 'gallows head'. Right-hand corner near the end of the circuit."
+    "notes": "Popular spectator area with two corners (Brünnchen 1 and 2). Name means 'little spring/well'. The second apex is particularly demanding. Treated as one section."
   },
   {
-    "id": "dottinger-hoehe",
-    "name": "Döttinger Höhe",
+    "id": "eiffelblitz",
+    "name": "Eiffelblitz",
     "order": 27,
     "type": "fast",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "The long flat-out straight back towards the start. Over 2km. Cars reach 280-300km/h. Named after the nearby village of Döttingen."
+    "notes": "Name means 'Eifel lightning'. Fast section linking Brünnchen to Pflanzgarten. Listed on nring.info and oversteer48.com as a distinct section. Some lap guides omit it or fold it into Pflanzgarten."
+  },
+  {
+    "id": "pflanzgarten",
+    "name": "Pflanzgarten",
+    "order": 28,
+    "type": "fast",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Three-part fast section (Pflanzgarten 1, 2, 3). Name means 'plant garden'. Cars get airborne at Pflanzgarten 2. Extremely demanding at speed. One of the most spectacular sections on the circuit."
+  },
+  {
+    "id": "stefan-bellof-s",
+    "name": "Stefan Bellof S",
+    "order": 29,
+    "type": "fast",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Named after Stefan Bellof who set the legendary 6:11.13 lap record in 1983 qualifying. Fast S-bend immediately after Pflanzgarten 3."
+  },
+  {
+    "id": "schwalbenschwanz",
+    "name": "Schwalbenschwanz",
+    "order": 30,
+    "type": "medium",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Name means 'swallowtail'. Right-left-right sequence through the forest. Technical section requiring precise positioning, leading toward Kleines Karussell."
+  },
+  {
+    "id": "kleines-karussell",
+    "name": "Kleines Karussell",
+    "order": 31,
+    "type": "medium",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Name means 'small carousel'. A lightly banked right-hand bend, the smaller sibling to the Caracciola-Karussell. Listed separately on nring.info. Some guides merge it with Galgenkopf or Schwalbenschwanz."
+  },
+  {
+    "id": "galgenkopf",
+    "name": "Galgenkopf",
+    "order": 32,
+    "type": "medium",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Name means 'gallows head'. Right-hand corner near the end of the lap, historically referencing a gallows landmark. Leads onto the long Döttinger Höhe straight."
+  },
+  {
+    "id": "dottinger-hoehe",
+    "name": "Döttinger Höhe",
+    "order": 33,
+    "type": "fast",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "The longest flat-out section on the Nordschleife, over 2km. Cars reach 280–300 km/h. Named after the nearby village of Döttingen. A full-throttle blast back toward the start area."
   },
   {
     "id": "antoniusbusch",
     "name": "Antoniusbusch",
-    "order": 28,
+    "order": 34,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Final section before rejoining the GP circuit. Named after a local chapel."
+    "notes": "Medium-speed left-right combination at the end of Döttinger Höhe. Named after the St. Antonius chapel nearby. Marks the transition back to the GP/start area."
   },
   {
     "id": "tiergarten-end",
-    "name": "Tiergarten (end)",
-    "order": 29,
+    "name": "Tiergarten (Einfahrt)",
+    "order": 35,
     "type": "medium",
     "gps": null,
     "heading": null,
     "verified": false,
-    "notes": "Final corners rejoining the GP circuit start area."
+    "notes": "Final section rejoining the GP/start area, also referred to as T13 approach. Medium-speed right-hander that feeds back onto the combined circuit start straight. Some guides treat this as part of Antoniusbusch."
   }
 ]

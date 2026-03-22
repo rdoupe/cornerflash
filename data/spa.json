@@ -1,0 +1,132 @@
+[
+  {
+    "id": "la-source",
+    "name": "La Source",
+    "order": 1,
+    "type": "hairpin",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Tight hairpin immediately after the start/finish straight. First corner of the lap, major braking zone."
+  },
+  {
+    "id": "eau-rouge",
+    "name": "Eau Rouge",
+    "order": 2,
+    "type": "fast",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Famous high-speed left-hander at the bottom of the valley. Taken flat in modern F1 cars."
+  },
+  {
+    "id": "raidillon",
+    "name": "Raidillon",
+    "order": 3,
+    "type": "fast",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Steep uphill right-hander immediately exiting Eau Rouge. Often grouped with Eau Rouge but a distinct corner."
+  },
+  {
+    "id": "les-combes",
+    "name": "Les Combes",
+    "order": 4,
+    "type": "chicane",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Right-left chicane at the top of the Kemmel hill. Main overtaking spot on the circuit."
+  },
+  {
+    "id": "malmedy",
+    "name": "Malmedy",
+    "order": 5,
+    "type": "medium",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Medium-speed right-hander after Les Combes."
+  },
+  {
+    "id": "rivage",
+    "name": "Rivage",
+    "order": 6,
+    "type": "hairpin",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Slow hairpin right-hander, also called Bruxelles. Significant elevation change on exit."
+  },
+  {
+    "id": "pouhon",
+    "name": "Pouhon",
+    "order": 7,
+    "type": "fast",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Very fast double-apex left-hander. One of the most demanding corners on the calendar at high speed."
+  },
+  {
+    "id": "fagnes",
+    "name": "Fagnes",
+    "order": 8,
+    "type": "medium",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Right-hand corner in the Fagnes section, medium speed."
+  },
+  {
+    "id": "campus",
+    "name": "Campus",
+    "order": 9,
+    "type": "medium",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Previously called Stavelot exit. Medium-speed right-hander."
+  },
+  {
+    "id": "stavelot",
+    "name": "Stavelot",
+    "order": 10,
+    "type": "medium",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Right-hand corner leading onto the back section."
+  },
+  {
+    "id": "paul-frere",
+    "name": "Paul Frère",
+    "order": 11,
+    "type": "fast",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Fast left-right combination named after Belgian racing driver and journalist Paul Frère."
+  },
+  {
+    "id": "blanchimont",
+    "name": "Blanchimont",
+    "order": 12,
+    "type": "fast",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Very fast left-hander taken flat or near-flat. Leads onto the final straight."
+  },
+  {
+    "id": "bus-stop",
+    "name": "Bus Stop Chicane",
+    "order": 13,
+    "type": "chicane",
+    "gps": null,
+    "heading": null,
+    "verified": false,
+    "notes": "Final chicane before the start/finish straight. Left-right-left sequence. Heavy braking from high speed."
+  }
+]

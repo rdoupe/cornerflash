@@ -5,7 +5,7 @@ import MapPip from './MapPip.jsx';
 
 const MAX_NEW_PER_DAY = Infinity; // No limit — user controls their pace
 const NUM_CHOICES = 4;
-const NEW_INTRODUCED_KEY = (trackId) => `cornerflash:new_today:${trackId}`;
+const NEW_INTRODUCED_KEY = (trackId, username) => `cornerflash:${username}:new_today:${trackId}`;
 const CORRECT_FLASH_MS = 1200;
 const FRAME_INTERVAL_MS = 200; // ~5 fps
 const CANDIDATES_BASE = import.meta.env.VITE_CANDIDATES_BASE || '/candidates_new';
@@ -30,17 +30,17 @@ function getTodayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function getNewIntroducedToday(trackId) {
-  const raw = localStorage.getItem(NEW_INTRODUCED_KEY(trackId));
+function getNewIntroducedToday(trackId, username) {
+  const raw = localStorage.getItem(NEW_INTRODUCED_KEY(trackId, username));
   if (!raw) return { date: '', count: 0 };
   try { return JSON.parse(raw); } catch { return { date: '', count: 0 }; }
 }
 
-function incrementNewToday(trackId) {
+function incrementNewToday(trackId, username) {
   const today = getTodayKey();
-  const data = getNewIntroducedToday(trackId);
+  const data = getNewIntroducedToday(trackId, username);
   const count = data.date === today ? data.count + 1 : 1;
-  localStorage.setItem(NEW_INTRODUCED_KEY(trackId), JSON.stringify({ date: today, count }));
+  localStorage.setItem(NEW_INTRODUCED_KEY(trackId, username), JSON.stringify({ date: today, count }));
 }
 
 function shuffleArray(arr) {
@@ -128,7 +128,7 @@ function CornerImage({ trackId, cornerId, frames, answered, correctFlash }) {
   );
 }
 
-export default function FlashcardMode({ track, corners, onBack }) {
+export default function FlashcardMode({ track, corners, username, onBack }) {
   const [progress, setProgress] = useState({});
   const [queue, setQueue] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -155,7 +155,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
 
   useEffect(() => {
     let cancelled = false;
-    loadAllProgress(track).then((prog) => {
+    loadAllProgress(track, username).then((prog) => {
       if (cancelled) return;
       setProgress(prog);
       setLoading(false);
@@ -168,7 +168,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
     if (loading) return;
 
     const today = getTodayKey();
-    const newIntroduced = getNewIntroducedToday(track);
+    const newIntroduced = getNewIntroducedToday(track, username);
     const newUsed = newIntroduced.date === today ? newIntroduced.count : 0;
     setNewCountToday(newUsed);
 
@@ -250,11 +250,11 @@ export default function FlashcardMode({ track, corners, onBack }) {
         const existing = progress[cornerId];
         const card = existing || createCard(cornerId, track);
         if (!existing) {
-          incrementNewToday(track);
+          incrementNewToday(track, username);
           setNewCountToday((n) => n + 1);
         }
         const updated = reviewCard(card, 1);
-        await saveProgress(cornerId, track, updated);
+        await saveProgress(cornerId, track, username, updated);
         setProgress((prev) => ({ ...prev, [cornerId]: updated }));
       }
       return;
@@ -268,11 +268,11 @@ export default function FlashcardMode({ track, corners, onBack }) {
       const existing = progress[cornerId];
       const card = existing || createCard(cornerId, track);
       if (!existing) {
-        incrementNewToday(track);
+        incrementNewToday(track, username);
         setNewCountToday((n) => n + 1);
       }
       const updated = reviewCard(card, 4);
-      await saveProgress(cornerId, track, updated);
+      await saveProgress(cornerId, track, username, updated);
       setProgress((prev) => ({ ...prev, [cornerId]: updated }));
 
       setCorrectFlash(true);

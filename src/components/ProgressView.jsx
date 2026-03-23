@@ -12,20 +12,20 @@ function StatCard({ label, value, accent }) {
   );
 }
 
-export default function ProgressView({ track, corners, onBack }) {
+export default function ProgressView({ track, corners, username, onBack }) {
   const [progress, setProgress] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    loadAllProgress(track).then((prog) => {
+    loadAllProgress(track, username).then((prog) => {
       if (!cancelled) setProgress(prog);
     });
     return () => { cancelled = true; };
   }, [track]);
 
   const handleReset = async () => {
-    await resetProgress(track);
+    await resetProgress(track, username);
     setProgress({});
     setConfirmReset(false);
   };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import TrackSelector from './components/TrackSelector.jsx';
+import LoginScreen from './components/LoginScreen.jsx';
 import DevTextMatcher from './components/DevTextMatcher.jsx';
 import DevImagePruner from './components/DevImagePruner.jsx';
 import StudyMode from './components/StudyMode.jsx';
@@ -72,7 +73,7 @@ function ModeSelector({ track, onSelectMode, onBack }) {
 
       {/* Mode cards */}
       <div className="flex flex-col gap-4">
-        {MODES.filter(m => !m.devOnly || import.meta.env.DEV).map((mode) => (
+        {MODES.filter(m => !m.devOnly).map((mode) => (
           <button
             key={mode.id}
             onClick={() => onSelectMode(mode.id)}
@@ -117,6 +118,21 @@ function ErrorScreen({ track, error, onBack }) {
 }
 
 export default function App() {
+  const [user, setUser] = useState(() => localStorage.getItem('cornerflash:user') || null);
+
+  const handleLogout = () => {
+    localStorage.removeItem('cornerflash:user');
+    setUser(null);
+  };
+
+  if (!user) {
+    return <LoginScreen onLogin={setUser} />;
+  }
+
+  return <AppShell user={user} onLogout={handleLogout} />;
+}
+
+function AppShell({ user, onLogout }) {
   // screen: 'track-select' | 'mode-select' | 'study' | 'flashcard' | 'progress'
   const [screen, setScreen] = useState('track-select');
   const [selectedTrack, setSelectedTrack] = useState(null);
@@ -173,7 +189,7 @@ export default function App() {
 
   // Track select screen
   if (screen === 'track-select') {
-    return <TrackSelector onSelect={handleSelectTrack} />;
+    return <TrackSelector onSelect={handleSelectTrack} user={user} onLogout={onLogout} />;
   }
 
   // Loading corners
@@ -214,6 +230,7 @@ export default function App() {
       <FlashcardMode
         track={selectedTrack}
         corners={corners}
+        username={user}
         onBack={handleBackToModes}
       />
     );
@@ -225,6 +242,7 @@ export default function App() {
       <ProgressView
         track={selectedTrack}
         corners={corners}
+        username={user}
         onBack={handleBackToModes}
       />
     );

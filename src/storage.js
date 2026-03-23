@@ -1,15 +1,15 @@
 // localStorage abstraction with async interface (ready to swap to Supabase later)
 
-const KEY = (trackId) => `cornerflash:progress:${trackId}`;
+const KEY = (username, trackId) => `cornerflash:${username}:progress:${trackId}`;
 
-export async function saveProgress(cornerId, trackId, smData) {
-  const all = await loadAllProgress(trackId);
+export async function saveProgress(cornerId, trackId, username, smData) {
+  const all = await loadAllProgress(trackId, username);
   all[cornerId] = smData;
-  localStorage.setItem(KEY(trackId), JSON.stringify(all));
+  localStorage.setItem(KEY(username, trackId), JSON.stringify(all));
 }
 
-export async function loadAllProgress(trackId) {
-  const raw = localStorage.getItem(KEY(trackId));
+export async function loadAllProgress(trackId, username) {
+  const raw = localStorage.getItem(KEY(username, trackId));
   if (!raw) return {};
   try {
     return JSON.parse(raw);
@@ -18,6 +18,6 @@ export async function loadAllProgress(trackId) {
   }
 }
 
-export async function resetProgress(trackId) {
-  localStorage.removeItem(KEY(trackId));
+export async function resetProgress(trackId, username) {
+  localStorage.removeItem(KEY(username, trackId));
 }

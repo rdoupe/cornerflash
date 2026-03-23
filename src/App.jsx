@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { App as CapApp } from '@capacitor/app';
 import TrackSelector from './components/TrackSelector.jsx';
 import LoginScreen from './components/LoginScreen.jsx';
 import DevTextMatcher from './components/DevTextMatcher.jsx';
@@ -139,6 +140,30 @@ function AppShell({ user, onLogout }) {
   const [corners, setCorners] = useState([]);
   const [loadingCorners, setLoadingCorners] = useState(false);
   const [loadError, setLoadError] = useState(null);
+
+  // Android back button handling
+  useEffect(() => {
+    const handler = CapApp.addListener('backButton', () => {
+      if (screen === 'track-select') {
+        CapApp.exitApp();
+      } else if (screen === 'mode-select') {
+        handleBackToTracks();
+      } else {
+        handleBackToModes();
+      }
+    });
+    return () => { handler.then(h => h.remove()); };
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Unlock audio context on first touch (Android WebView requires a gesture)
+  useEffect(() => {
+    const unlock = () => {
+      const ctx = new AudioContext();
+      ctx.resume();
+    };
+    document.addEventListener('touchstart', unlock, { once: true });
+    return () => document.removeEventListener('touchstart', unlock);
+  }, []);
 
   // Load corners whenever a track is selected
   useEffect(() => {

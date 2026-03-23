@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(where node:*)",
+      "Bash(cmd.exe /c \"winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements\")",
+      "Bash(cmd.exe /c \"where node && node --version && npm --version\")",
+      "Bash(powershell.exe -Command \"winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements\")",
+      "Bash(powershell.exe -Command \"cd ''C:\\\\Users\\\\ryand\\\\Documents\\\\Claude\\\\Projects\\\\CornerFlash''; node --version; npm --version; npm install 2>&1\")",
+      "Bash(powershell.exe -Command \"Get-Command node -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source; ls ''C:\\\\Program Files\\\\nodejs\\\\'' 2>$null | Select-Object -First 5\")",
+      "Bash(powershell.exe -Command \"ls ''C:\\\\Program Files\\\\nodejs\\\\''\")",
+      "Bash(powershell.exe -Command \"& ''C:\\\\Program Files\\\\nodejs\\\\node.exe'' --version; & ''C:\\\\Program Files\\\\nodejs\\\\npm.cmd'' --version\")",
+      "Bash(powershell.exe -Command \"cd ''C:\\\\Users\\\\ryand\\\\Documents\\\\Claude\\\\Projects\\\\CornerFlash''; & ''C:\\\\Program Files\\\\nodejs\\\\npm.cmd'' install 2>&1\")",
+      "Bash(powershell.exe -Command \"Remove-Item -Recurse -Force ''C:\\\\Users\\\\ryand\\\\Documents\\\\Claude\\\\Projects\\\\CornerFlash\\\\node_modules'' -ErrorAction SilentlyContinue; Remove-Item -Force ''C:\\\\Users\\\\ryand\\\\Documents\\\\Claude\\\\Projects\\\\CornerFlash\\\\package-lock.json'' -ErrorAction SilentlyContinue; Write-Host ''cleaned''\")"
+    ]
+  }
+}

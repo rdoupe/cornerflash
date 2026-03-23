@@ -31,8 +31,9 @@ if (trackIndex === -1 || !args[trackIndex + 1]) {
 const trackId = args[trackIndex + 1].toLowerCase();
 
 const TRACK_QUERIES = {
-  nordschleife: `[out:json][timeout:60];
-way["name"="Nürburgring Nordschleife"];
+  // Nordschleife — relation query (member ways with geometry)
+  nordschleife: `[out:json][timeout:90];
+relation["name"="Nürburgring Nordschleife"];
 out geom;`,
   spa: `[out:json][timeout:60];
 way["name"="Circuit de Spa-Francorchamps"];
@@ -104,7 +105,7 @@ function calcHeading(pt1, pt2) {
 // Overpass query
 // ---------------------------------------------------------------------------
 
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+const OVERPASS_URL = 'https://overpass.kumi.systems/api/interpreter';
 
 async function fetchOverpass(query) {
   console.log('Querying Overpass API...');
@@ -126,6 +127,27 @@ async function fetchOverpass(query) {
 // ---------------------------------------------------------------------------
 
 function extractPolyline(overpassData) {
+  // Check for relation elements — Nordschleife is stored as a route relation in OSM.
+  // When queried with `out geom`, relation members include inline geometry.
+  const relations = overpassData.elements.filter((el) => el.type === 'relation' && el.members);
+  if (relations.length > 0) {
+    console.log(`Found ${relations.length} relation(s) — extracting member way geometry.`);
+    const waySegs = [];
+    for (const rel of relations) {
+      for (const member of rel.members) {
+        if (member.type === 'way' && Array.isArray(member.geometry) && member.geometry.length > 1) {
+          waySegs.push(member.geometry);
+        }
+      }
+    }
+    if (waySegs.length === 0) {
+      throw new Error('Relation found but no member ways with geometry. Try a different Overpass query.');
+    }
+    // Stitch segments below
+    const fakeWays = waySegs.map((g) => ({ geometry: g }));
+    overpassData = { elements: fakeWays.map((w) => ({ type: 'way', geometry: w.geometry })) };
+  }
+
   const ways = overpassData.elements.filter((el) => el.type === 'way' && el.geometry);
   if (ways.length === 0) {
     throw new Error('No ways with geometry found in Overpass response.');

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import TrackSelector from './components/TrackSelector.jsx';
+import DevTextMatcher from './components/DevTextMatcher.jsx';
 import StudyMode from './components/StudyMode.jsx';
 import FlashcardMode from './components/FlashcardMode.jsx';
 import ProgressView from './components/ProgressView.jsx';
@@ -10,6 +11,13 @@ const TRACK_LABELS = {
 };
 
 const MODES = [
+  {
+    id: 'dev-text-matcher',
+    label: 'Dev: Text Matcher',
+    description: 'Manually assign corners to labeled frames. Run new-scan-all first.',
+    icon: 'DEV',
+    accent: 'border-yellow-800 hover:border-yellow-500',
+  },
   {
     id: 'flashcard',
     label: 'Flashcard',
@@ -210,6 +218,10 @@ export default function App() {
         onBack={handleBackToModes}
       />
     );
+  }
+
+  if (screen === 'dev-text-matcher') {
+    return <DevTextMatcher onBack={handleBackToModes} />;
   }
 
   // Fallback

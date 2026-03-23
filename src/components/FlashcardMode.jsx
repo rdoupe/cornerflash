@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createCard, reviewCard, isDue } from '../sm2.js';
 import { saveProgress, loadAllProgress } from '../storage.js';
 import MapPip from './MapPip.jsx';
 
-const MAX_NEW_PER_DAY = 5;
+const MAX_NEW_PER_DAY = Infinity; // No limit — user controls their pace
+const NUM_CHOICES = 4;
 const NEW_INTRODUCED_KEY = (trackId) => `cornerflash:new_today:${trackId}`;
 
 const TYPE_BADGE = {
@@ -11,13 +12,6 @@ const TYPE_BADGE = {
   medium: 'bg-yellow-950 text-yellow-300 border-yellow-900',
   slow: 'bg-blue-950 text-blue-300 border-blue-900',
 };
-
-const RATING_BUTTONS = [
-  { rating: 0, label: 'Again', sublabel: '<1d', color: 'bg-red-900 hover:bg-red-800 border-red-800 text-red-200' },
-  { rating: 2, label: 'Hard',  sublabel: '~1d',  color: 'bg-orange-900 hover:bg-orange-800 border-orange-800 text-orange-200' },
-  { rating: 3, label: 'Good',  sublabel: '~6d',  color: 'bg-yellow-900 hover:bg-yellow-800 border-yellow-800 text-yellow-200' },
-  { rating: 5, label: 'Easy',  sublabel: 'long', color: 'bg-green-900 hover:bg-green-800 border-green-800 text-green-200' },
-];
 
 function getTodayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -36,29 +30,61 @@ function incrementNewToday(trackId) {
   localStorage.setItem(NEW_INTRODUCED_KEY(trackId), JSON.stringify({ date: today, count }));
 }
 
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-function CornerImage({ trackId, cornerId, cornerName }) {
+function pickDistractors(correctCorner, allCorners, count) {
+  // Prefer same type for harder distractors, fall back to any
+  const sameType = allCorners.filter(c => c.id !== correctCorner.id && c.type === correctCorner.type);
+  const others = allCorners.filter(c => c.id !== correctCorner.id && c.type !== correctCorner.type);
+  const pool = [...shuffleArray(sameType), ...shuffleArray(others)];
+  return pool.slice(0, count);
+}
+
+const FRAME_INTERVAL_MS = 200; // ~5 fps
+
+function CornerImage({ trackId, cornerId, frames }) {
+  const [frameIndex, setFrameIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
-  const src = `/images/corners/${trackId}/${cornerId}.jpg`;
+  const intervalRef = useRef(null);
 
-  if (imgError) {
+  // Reset frame + error when corner changes
+  useEffect(() => {
+    setFrameIndex(0);
+    setImgError(false);
+  }, [cornerId]);
+
+  // Animate through frames
+  useEffect(() => {
+    if (!frames || frames.length <= 1) return;
+    intervalRef.current = setInterval(() => {
+      setFrameIndex((i) => (i + 1) % frames.length);
+    }, FRAME_INTERVAL_MS);
+    return () => clearInterval(intervalRef.current);
+  }, [frames]);
+
+  if (imgError && (!frames || frames.length === 0)) {
     return (
-      <div
-        className="w-full rounded-xl flex flex-col items-center justify-center"
-        style={{ backgroundColor: '#1a1a1a', minHeight: 200 }}
-      >
-        <p className="text-white text-2xl font-black text-center px-4 leading-tight">
-          {cornerName}
-        </p>
-        <p className="text-gray-600 text-xs font-mono mt-2">{cornerId}</p>
+      <div className="w-full rounded-xl flex items-center justify-center bg-gray-900" style={{ minHeight: 200 }}>
+        <p className="text-gray-700 text-xs font-mono">{cornerId}</p>
       </div>
     );
   }
 
+  const src = frames && frames.length > 0
+    ? `/candidates_new/${cornerId}/${frames[frameIndex]}`
+    : `/images/corners/${trackId}/${cornerId}.jpg`;
+
   return (
     <img
       src={src}
-      alt={cornerName}
+      alt="Which corner is this?"
       className="w-full rounded-xl object-cover"
       style={{ minHeight: 200, maxHeight: 280 }}
       onError={() => setImgError(true)}
@@ -70,10 +96,21 @@ export default function FlashcardMode({ track, corners, onBack }) {
   const [progress, setProgress] = useState({});
   const [queue, setQueue] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [revealed, setRevealed] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [confirmedCorrect, setConfirmedCorrect] = useState(false); // true when user taps correct after wrong
   const [loading, setLoading] = useState(true);
   const [sessionDone, setSessionDone] = useState(false);
   const [newCountToday, setNewCountToday] = useState(0);
+  const [choices, setChoices] = useState([]);
+  const [candidatesManifest, setCandidatesManifest] = useState({});
+
+  // Load candidates manifest for animation frames
+  useEffect(() => {
+    fetch('/candidates_new/manifest.json')
+      .then((r) => r.ok ? r.json() : {})
+      .then((data) => setCandidatesManifest(data))
+      .catch(() => {});
+  }, []);
 
   // Load progress on mount
   useEffect(() => {
@@ -107,7 +144,6 @@ export default function FlashcardMode({ track, corners, onBack }) {
       }
     }
 
-    // Include new cards up to daily limit
     const newAllowed = Math.max(0, MAX_NEW_PER_DAY - newUsed);
     const newToShow = newCards.slice(0, newAllowed);
 
@@ -122,35 +158,63 @@ export default function FlashcardMode({ track, corners, onBack }) {
     }
   }, [progress, loading, corners, track]);
 
-  const handleReveal = useCallback(() => {
-    setRevealed(true);
-  }, []);
+  // Generate choices whenever current card changes
+  useEffect(() => {
+    if (queue.length === 0 || currentIndex >= queue.length) return;
 
-  const handleRate = useCallback(async (rating) => {
     const cornerId = queue[currentIndex];
+    const corner = corners.find(c => c.id === cornerId);
+    if (!corner) return;
+
+    const distractors = pickDistractors(corner, corners, NUM_CHOICES - 1);
+    const allChoices = shuffleArray([corner, ...distractors]);
+    setChoices(allChoices);
+    setSelectedAnswer(null);
+    setConfirmedCorrect(false);
+  }, [queue, currentIndex, corners]);
+
+  const handleAnswer = useCallback(async (chosenId) => {
+    const cornerId = queue[currentIndex];
+
+    // Phase 2: user got it wrong and is now tapping the correct answer to confirm
+    if (selectedAnswer !== null && selectedAnswer !== cornerId && chosenId === cornerId) {
+      setConfirmedCorrect(true);
+      return;
+    }
+
+    if (selectedAnswer !== null) return; // Already answered, ignore other taps
+
+    const isCorrect = chosenId === cornerId;
+    setSelectedAnswer(chosenId);
+
+    if (isCorrect) {
+      setConfirmedCorrect(true); // Correct on first try — no confirmation needed
+    }
+
     const existing = progress[cornerId];
     const card = existing || createCard(cornerId, track);
 
-    // Track new card introduction
     if (!existing) {
       incrementNewToday(track);
       setNewCountToday((n) => n + 1);
     }
 
+    // Correct → 4 (good), Wrong → 1 (fail)
+    const rating = isCorrect ? 4 : 1;
     const updated = reviewCard(card, rating);
     await saveProgress(cornerId, track, updated);
 
     setProgress((prev) => ({ ...prev, [cornerId]: updated }));
+  }, [queue, currentIndex, progress, track, selectedAnswer]);
 
-    // Advance
+  const handleNext = useCallback(() => {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= queue.length) {
       setSessionDone(true);
     } else {
       setCurrentIndex(nextIndex);
-      setRevealed(false);
     }
-  }, [queue, currentIndex, progress, track]);
+  }, [currentIndex, queue]);
 
   if (loading) {
     return (
@@ -160,9 +224,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
     );
   }
 
-  // All done
   if (sessionDone) {
-    // Find next due time
     let nextReviewTime = null;
     for (const corner of corners) {
       const card = progress[corner.id];
@@ -185,7 +247,6 @@ export default function FlashcardMode({ track, corners, onBack }) {
 
     return (
       <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-4 text-center max-w-lg mx-auto">
-        <div className="text-5xl mb-4">🏁</div>
         <h2 className="text-2xl font-black text-white mb-2">All caught up!</h2>
         <p className="text-gray-400 text-sm mb-1">No cards due right now.</p>
         {nextReviewTime && (
@@ -197,7 +258,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
           onClick={onBack}
           className="px-8 py-3 bg-gray-900 border border-gray-700 text-white rounded-xl hover:bg-gray-800 transition-colors text-sm font-semibold"
         >
-          ← Back to menu
+          Back to menu
         </button>
       </div>
     );
@@ -214,7 +275,11 @@ export default function FlashcardMode({ track, corners, onBack }) {
     );
   }
 
-  const typeBadge = TYPE_BADGE[corner.type] || 'bg-gray-800 text-gray-300 border-gray-700';
+  const answered = selectedAnswer !== null;
+  const wasCorrect = selectedAnswer === cornerId;
+  const wasWrong = answered && !wasCorrect;
+  const needsConfirmation = wasWrong && !confirmedCorrect;
+  const canProceed = answered && confirmedCorrect;
   const card = progress[corner.id];
   const isNew = !card;
 
@@ -226,7 +291,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
           onClick={onBack}
           className="text-gray-400 hover:text-white transition-colors text-sm"
         >
-          ‹ Back
+          Back
         </button>
         <div className="text-xs text-gray-600 uppercase tracking-widest">{track}</div>
         <div className="text-xs text-gray-500 tabular-nums">
@@ -253,67 +318,101 @@ export default function FlashcardMode({ track, corners, onBack }) {
 
       {/* Card area */}
       <div className="flex-1 flex flex-col gap-4">
-        {/* Image / placeholder */}
-        <CornerImage trackId={track} cornerId={corner.id} cornerName={corner.name} />
+        {/* Image */}
+        <div className="relative">
+          <CornerImage
+            trackId={track}
+            cornerId={corner.id}
+            frames={candidatesManifest[corner.id] || null}
+          />
+        </div>
 
-        {/* Map pip + question prompt */}
+        {/* Map pip + prompt */}
         <div className="flex items-center justify-between">
-          <div className="text-gray-400 text-sm font-medium">
-            {revealed ? 'Corner revealed' : 'What corner is this?'}
+          <div className={`text-sm font-medium ${wasCorrect ? 'text-green-400' : wasWrong ? 'text-red-400' : 'text-gray-400'}`}>
+            {!answered && 'What corner is this?'}
+            {wasCorrect && 'Correct!'}
+            {needsConfirmation && `Wrong — tap ${corner.name} to continue`}
+            {wasWrong && confirmedCorrect && corner.name}
           </div>
           <MapPip corners={corners} currentCornerId={corner.id} trackId={track} />
         </div>
 
-        {/* Revealed info */}
-        {revealed && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 animate-in fade-in duration-200">
-            <div className="text-gray-600 text-xs font-mono uppercase tracking-widest mb-1">
-              Corner #{corner.order}
+        {/* Multiple choice buttons */}
+        <div className="flex flex-col gap-2">
+          {choices.map((choice) => {
+            let btnClass = 'bg-gray-900 border-gray-700 text-white hover:bg-gray-800';
+            let extra = '';
+            let clickable = true;
+
+            if (answered) {
+              if (choice.id === cornerId) {
+                // Correct answer
+                if (needsConfirmation) {
+                  // Pulsing — waiting for user to tap it
+                  btnClass = 'bg-green-900 border-green-500 text-green-200 animate-pulse';
+                } else {
+                  btnClass = 'bg-green-900 border-green-700 text-green-200';
+                }
+              } else if (choice.id === selectedAnswer) {
+                // Wrong pick — red
+                btnClass = 'bg-red-900 border-red-700 text-red-200';
+                clickable = false;
+              } else {
+                btnClass = 'bg-gray-900 border-gray-800 text-gray-600';
+                clickable = false;
+              }
+
+              // After confirmation, nothing is clickable
+              if (confirmedCorrect) clickable = false;
+            }
+
+            return (
+              <button
+                key={choice.id}
+                onClick={() => handleAnswer(choice.id)}
+                disabled={!clickable}
+                className={`w-full py-3 px-4 border rounded-xl font-semibold text-sm transition-all text-left ${btnClass} ${clickable ? 'active:scale-[0.98]' : ''}`}
+              >
+                {choice.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Post-answer info — only after full confirmation */}
+        {canProceed && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`text-xs border px-3 py-1 rounded-full uppercase tracking-wider font-semibold ${TYPE_BADGE[corner.type] || 'bg-gray-800 text-gray-300 border-gray-700'}`}>
+                {corner.type}
+              </span>
+              <span className="text-gray-600 text-xs font-mono">#{corner.order}</span>
             </div>
-            <h2 className="text-2xl font-black text-white leading-tight mb-3">
-              {corner.name}
-            </h2>
-            <span className={`text-xs border px-3 py-1 rounded-full uppercase tracking-wider font-semibold ${typeBadge}`}>
-              {corner.type}
-            </span>
             {corner.notes && (
-              <p className="text-gray-300 text-sm leading-relaxed mt-4 border-t border-gray-800 pt-4">
+              <p className="text-gray-300 text-sm leading-relaxed">
                 {corner.notes}
-              </p>
-            )}
-            {card && (
-              <p className="text-gray-700 text-xs mt-3 font-mono">
-                Interval: {card.interval}d · EF: {card.easeFactor.toFixed(2)}
               </p>
             )}
           </div>
         )}
       </div>
 
-      {/* Action buttons */}
-      <div className="mt-6">
-        {!revealed ? (
+      {/* Next button — only after confirmation */}
+      {canProceed && (
+        <div className="mt-6">
           <button
-            onClick={handleReveal}
-            className="w-full py-4 bg-orange-500 hover:bg-orange-400 active:scale-95 text-white rounded-xl font-bold text-lg transition-all"
+            onClick={handleNext}
+            className={`w-full py-4 rounded-xl font-bold text-lg transition-all active:scale-95 ${
+              wasCorrect
+                ? 'bg-green-600 hover:bg-green-500 text-white'
+                : 'bg-orange-500 hover:bg-orange-400 text-white'
+            }`}
           >
-            Reveal Answer
+            {currentIndex + 1 >= queue.length ? 'Finish' : 'Next'}
           </button>
-        ) : (
-          <div className="flex gap-2">
-            {RATING_BUTTONS.map(({ rating, label, sublabel, color }) => (
-              <button
-                key={rating}
-                onClick={() => handleRate(rating)}
-                className={`flex-1 py-4 border rounded-xl font-semibold text-sm active:scale-95 transition-all flex flex-col items-center gap-0.5 ${color}`}
-              >
-                <span>{label}</span>
-                <span className="text-xs opacity-60">{sublabel}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

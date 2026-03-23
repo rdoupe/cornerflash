@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const TYPE_BADGE = {
   fast: 'bg-red-950 text-red-300 border-red-900',
@@ -6,8 +6,61 @@ const TYPE_BADGE = {
   slow: 'bg-blue-950 text-blue-300 border-blue-900',
 };
 
+function AnimatedImage({ track, cornerId, candidates }) {
+  const startIdx = candidates ? Math.floor(candidates.length / 2) : 0;
+  const [frameIdx, setFrameIdx] = useState(startIdx);
+  const [useFallback, setUseFallback] = useState(false);
+
+  useEffect(() => {
+    setFrameIdx(candidates ? Math.floor(candidates.length / 2) : 0);
+    setUseFallback(false);
+  }, [cornerId, candidates]);
+
+  useEffect(() => {
+    if (!candidates || candidates.length <= 1) return;
+    const timer = setInterval(() => setFrameIdx((i) => (i + 1) % candidates.length), 900);
+    return () => clearInterval(timer);
+  }, [candidates]);
+
+  const hasCandidates = candidates && candidates.length > 0 && !useFallback;
+  const src = hasCandidates
+    ? `/candidates_new/${cornerId}/${candidates[frameIdx].filename}`
+    : `/images/corners/${track}/${cornerId}.jpg`;
+
+  return (
+    <div className="relative w-full rounded-xl overflow-hidden bg-gray-800 mb-6" style={{ minHeight: 180 }}>
+      <img
+        src={src}
+        alt={cornerId}
+        className="w-full object-cover"
+        style={{ minHeight: 180, maxHeight: 260 }}
+        onError={() => setUseFallback(true)}
+      />
+      {hasCandidates && candidates.length > 1 && (
+        <>
+          {candidates.length <= 20 && (
+            <div className="absolute top-2 left-2 flex gap-0.5">
+              {candidates.map((_, i) => (
+                <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === frameIdx ? 'bg-white' : 'bg-white/25'}`} />
+              ))}
+            </div>
+          )}
+          <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-mono rounded px-1.5 py-0.5">
+            {frameIdx + 1}/{candidates.length}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function StudyMode({ track, corners, onBack }) {
   const [index, setIndex] = useState(0);
+  const [candidatesManifest, setCandidatesManifest] = useState({});
+
+  useEffect(() => {
+    fetch('/candidates_new/manifest.json').then(r => r.ok ? r.json() : {}).then(setCandidatesManifest).catch(() => {});
+  }, []);
 
   if (!corners || corners.length === 0) {
     return (
@@ -49,6 +102,17 @@ export default function StudyMode({ track, corners, onBack }) {
           style={{ width: `${((index + 1) / total) * 100}%` }}
         />
       </div>
+
+      {/* Animated image */}
+      <AnimatedImage
+        track={track}
+        cornerId={corner.id}
+        candidates={
+          corner.id === 'tiergarten'
+            ? null
+            : (candidatesManifest[corner.id]?.candidates ?? null)
+        }
+      />
 
       {/* Corner card */}
       <div className="flex-1 flex flex-col">

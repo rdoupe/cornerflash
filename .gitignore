@@ -6,3 +6,13 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Video pipeline temp files (original playlist)
+videos/
+frames/
+public/candidates/
+
+# New multi-view video pipeline
+videos_new/
+frames_new/
+public/candidates_new/

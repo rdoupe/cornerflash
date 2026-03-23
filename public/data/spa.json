@@ -4,8 +4,11 @@
     "name": "La Source",
     "order": 1,
     "type": "hairpin",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4370586,
+      "lng": 5.9644588
+    },
+    "heading": 41.6,
     "verified": false,
     "notes": "Tight hairpin immediately after the start/finish straight. First corner of the lap, major braking zone. Unchanged in 2022 revisions."
   },
@@ -14,8 +17,11 @@
     "name": "Eau Rouge",
     "order": 2,
     "type": "fast",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4416885,
+      "lng": 5.9645622
+    },
+    "heading": 327.4,
     "verified": false,
     "notes": "Famous high-speed left-hander at the bottom of the valley, crossing the Eau Rouge stream. Taken flat in modern F1 cars. Unchanged in 2022 revisions."
   },
@@ -24,8 +30,11 @@
     "name": "Raidillon",
     "order": 3,
     "type": "fast",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4445814,
+      "lng": 5.9626819
+    },
+    "heading": 317.6,
     "verified": false,
     "notes": "Steep uphill right-hander exiting Eau Rouge. Often grouped with Eau Rouge as 'Eau Rouge/Raidillon' but a distinct corner. A new asphalt runoff was added in the 2022 safety revisions but the corner itself is unchanged."
   },
@@ -34,8 +43,11 @@
     "name": "Kemmel Straight",
     "order": 4,
     "type": "fast",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4467964,
+      "lng": 5.9626252
+    },
+    "heading": 341.9,
     "verified": false,
     "notes": "The long flat-out straight from Raidillon to Les Combes. Not a corner but a defining feature. Cars reach 320+ km/h. Listed here as the section entry point for image purposes."
   },
@@ -44,8 +56,11 @@
     "name": "Les Combes",
     "order": 5,
     "type": "chicane",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4447099,
+      "lng": 5.9692271
+    },
+    "heading": 83.1,
     "verified": false,
     "notes": "Right-left chicane at the top of the Kemmel hill. Primary overtaking opportunity on the circuit. Unchanged in 2022 revisions."
   },
@@ -54,8 +69,11 @@
     "name": "Malmedy",
     "order": 6,
     "type": "medium",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4428205,
+      "lng": 5.971979
+    },
+    "heading": 56.4,
     "verified": false,
     "notes": "Medium-speed right-hander after Les Combes. Named after the nearby Belgian town. Unchanged in 2022 revisions."
   },
@@ -64,8 +82,11 @@
     "name": "Rivage",
     "order": 7,
     "type": "hairpin",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4400641,
+      "lng": 5.9733303
+    },
+    "heading": 137,
     "verified": false,
     "notes": "Slow hairpin right-hander, also called Bruxelles on some maps. Significant elevation change on exit. Unchanged in 2022 revisions."
   },
@@ -74,8 +95,11 @@
     "name": "Pouhon",
     "order": 8,
     "type": "fast",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4308421,
+      "lng": 5.9786771
+    },
+    "heading": 212.3,
     "verified": false,
     "notes": "Very fast double-apex left-hander. One of the most demanding corners on the calendar at high speed. Unchanged in 2022 revisions."
   },
@@ -84,8 +108,11 @@
     "name": "Fagnes",
     "order": 9,
     "type": "medium",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4276936,
+      "lng": 5.9741187
+    },
+    "heading": 251,
     "verified": false,
     "notes": "Right-hand corner in the Fagnes section, medium speed. Named after the Hautes Fagnes plateau region. Unchanged in 2022 revisions."
   },
@@ -94,8 +121,11 @@
     "name": "Campus",
     "order": 10,
     "type": "medium",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4295663,
+      "lng": 5.9692921
+    },
+    "heading": 287,
     "verified": false,
     "notes": "Medium-speed right-hander. Name comes from the nearby Campus industrial zone. Unchanged in 2022 revisions."
   },
@@ -104,8 +134,11 @@
     "name": "Stavelot",
     "order": 11,
     "type": "medium",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4279322,
+      "lng": 5.9617508
+    },
+    "heading": 292.8,
     "verified": false,
     "notes": "Right-hand corner leading onto the back section, named after the nearby town of Stavelot. Unchanged in 2022 revisions."
   },
@@ -114,8 +147,11 @@
     "name": "Paul Frère",
     "order": 12,
     "type": "fast",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4300965,
+      "lng": 5.9582967
+    },
+    "heading": 20.2,
     "verified": false,
     "notes": "Fast left-right combination named after Belgian racing driver and journalist Paul Frère. Unchanged in 2022 revisions."
   },
@@ -124,8 +160,11 @@
     "name": "Blanchimont",
     "order": 13,
     "type": "fast",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.43225,
+      "lng": 5.9567097
+    },
+    "heading": 256.8,
     "verified": false,
     "notes": "Very fast left-hander taken flat or near-flat in F1. Leads onto the final straight. Unchanged in 2022 revisions."
   },
@@ -134,8 +173,11 @@
     "name": "Bus Stop Chicane",
     "order": 14,
     "type": "chicane",
-    "gps": null,
-    "heading": null,
+    "gps": {
+      "lat": 50.4337448,
+      "lng": 5.958712
+    },
+    "heading": 58.3,
     "verified": false,
     "notes": "Final chicane before the start/finish straight. Left-right-left sequence. Heavy braking from high speed. Unchanged in 2022 revisions."
   }

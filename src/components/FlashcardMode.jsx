@@ -6,6 +6,8 @@ import MapPip from './MapPip.jsx';
 const MAX_NEW_PER_DAY = Infinity; // No limit — user controls their pace
 const NUM_CHOICES = 4;
 const NEW_INTRODUCED_KEY = (trackId) => `cornerflash:new_today:${trackId}`;
+const CORRECT_FLASH_MS = 1200;
+const FRAME_INTERVAL_MS = 200; // ~5 fps
 
 const TYPE_BADGE = {
   fast: 'bg-red-950 text-red-300 border-red-900',
@@ -47,9 +49,7 @@ function pickDistractors(correctCorner, allCorners, count) {
   return pool.slice(0, count);
 }
 
-const FRAME_INTERVAL_MS = 200; // ~5 fps
-
-function CornerImage({ trackId, cornerId, frames }) {
+function CornerImage({ trackId, cornerId, frames, answered, correctFlash }) {
   const [frameIndex, setFrameIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
   const intervalRef = useRef(null);
@@ -82,13 +82,28 @@ function CornerImage({ trackId, cornerId, frames }) {
     : `/images/corners/${trackId}/${cornerId}.jpg`;
 
   return (
-    <img
-      src={src}
-      alt="Which corner is this?"
-      className="w-full rounded-xl object-cover"
-      style={{ minHeight: 200, maxHeight: 280 }}
-      onError={() => setImgError(true)}
-    />
+    <div className="relative">
+      <img
+        src={src}
+        alt="Which corner is this?"
+        className="w-full rounded-xl object-cover"
+        style={{ minHeight: 200, maxHeight: 280 }}
+        onError={() => setImgError(true)}
+      />
+      {/* Black bar — hides corner name label until answered */}
+      {!answered && (
+        <div
+          className="absolute top-0 left-0 w-full rounded-t-xl pointer-events-none"
+          style={{ height: '20%', background: '#000' }}
+        />
+      )}
+      {/* Correct flash overlay */}
+      {correctFlash && (
+        <div className="absolute inset-0 rounded-xl bg-green-500/40 flex items-center justify-center pointer-events-none">
+          <span className="text-white text-6xl font-black drop-shadow-lg">✓</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -97,12 +112,17 @@ export default function FlashcardMode({ track, corners, onBack }) {
   const [queue, setQueue] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [confirmedCorrect, setConfirmedCorrect] = useState(false); // true when user taps correct after wrong
+  const [confirmedCorrect, setConfirmedCorrect] = useState(false);
+  const [correctFlash, setCorrectFlash] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sessionDone, setSessionDone] = useState(false);
   const [newCountToday, setNewCountToday] = useState(0);
   const [choices, setChoices] = useState([]);
   const [candidatesManifest, setCandidatesManifest] = useState({});
+
+  // Keep a ref to progress so the queue-build effect doesn't depend on it
+  const progressRef = useRef({});
+  useEffect(() => { progressRef.current = progress; }, [progress]);
 
   // Load candidates manifest for animation frames
   useEffect(() => {
@@ -123,7 +143,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
     return () => { cancelled = true; };
   }, [track]);
 
-  // Build queue whenever progress loads or changes
+  // Build queue once on load — NOT dependent on progress to avoid mid-session resets
   useEffect(() => {
     if (loading) return;
 
@@ -132,11 +152,12 @@ export default function FlashcardMode({ track, corners, onBack }) {
     const newUsed = newIntroduced.date === today ? newIntroduced.count : 0;
     setNewCountToday(newUsed);
 
+    const prog = progressRef.current;
     const due = [];
     const newCards = [];
 
     for (const corner of corners) {
-      const card = progress[corner.id];
+      const card = prog[corner.id];
       if (!card) {
         newCards.push(corner.id);
       } else if (isDue(card)) {
@@ -156,7 +177,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
       setCurrentIndex(0);
       setSessionDone(false);
     }
-  }, [progress, loading, corners, track]);
+  }, [loading, corners, track]); // ← progress intentionally excluded
 
   // Generate choices whenever current card changes
   useEffect(() => {
@@ -171,7 +192,17 @@ export default function FlashcardMode({ track, corners, onBack }) {
     setChoices(allChoices);
     setSelectedAnswer(null);
     setConfirmedCorrect(false);
+    setCorrectFlash(false);
   }, [queue, currentIndex, corners]);
+
+  const handleNext = useCallback(() => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex >= queue.length) {
+      setSessionDone(true);
+    } else {
+      setCurrentIndex(nextIndex);
+    }
+  }, [currentIndex, queue]);
 
   const handleAnswer = useCallback(async (chosenId) => {
     const cornerId = queue[currentIndex];
@@ -182,13 +213,19 @@ export default function FlashcardMode({ track, corners, onBack }) {
       return;
     }
 
-    if (selectedAnswer !== null) return; // Already answered, ignore other taps
+    if (selectedAnswer !== null) return; // Already answered, ignore taps
 
     const isCorrect = chosenId === cornerId;
     setSelectedAnswer(chosenId);
 
     if (isCorrect) {
-      setConfirmedCorrect(true); // Correct on first try — no confirmation needed
+      setConfirmedCorrect(true);
+      // Flash green, then auto-advance
+      setCorrectFlash(true);
+      setTimeout(() => {
+        setCorrectFlash(false);
+        handleNext();
+      }, CORRECT_FLASH_MS);
     }
 
     const existing = progress[cornerId];
@@ -199,22 +236,12 @@ export default function FlashcardMode({ track, corners, onBack }) {
       setNewCountToday((n) => n + 1);
     }
 
-    // Correct → 4 (good), Wrong → 1 (fail)
     const rating = isCorrect ? 4 : 1;
     const updated = reviewCard(card, rating);
     await saveProgress(cornerId, track, updated);
 
     setProgress((prev) => ({ ...prev, [cornerId]: updated }));
-  }, [queue, currentIndex, progress, track, selectedAnswer]);
-
-  const handleNext = useCallback(() => {
-    const nextIndex = currentIndex + 1;
-    if (nextIndex >= queue.length) {
-      setSessionDone(true);
-    } else {
-      setCurrentIndex(nextIndex);
-    }
-  }, [currentIndex, queue]);
+  }, [queue, currentIndex, progress, track, selectedAnswer, handleNext]);
 
   if (loading) {
     return (
@@ -280,6 +307,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
   const wasWrong = answered && !wasCorrect;
   const needsConfirmation = wasWrong && !confirmedCorrect;
   const canProceed = answered && confirmedCorrect;
+
   const card = progress[corner.id];
   const isNew = !card;
 
@@ -318,20 +346,21 @@ export default function FlashcardMode({ track, corners, onBack }) {
 
       {/* Card area */}
       <div className="flex-1 flex flex-col gap-4">
-        {/* Image */}
-        <div className="relative">
-          <CornerImage
-            trackId={track}
-            cornerId={corner.id}
-            frames={candidatesManifest[corner.id] || null}
-          />
-        </div>
+        {/* Image with black bar + flash overlay */}
+        <CornerImage
+          trackId={track}
+          cornerId={corner.id}
+          frames={candidatesManifest[corner.id] || null}
+          answered={answered}
+          correctFlash={correctFlash}
+        />
 
         {/* Map pip + prompt */}
         <div className="flex items-center justify-between">
           <div className={`text-sm font-medium ${wasCorrect ? 'text-green-400' : wasWrong ? 'text-red-400' : 'text-gray-400'}`}>
             {!answered && 'What corner is this?'}
-            {wasCorrect && 'Correct!'}
+            {wasCorrect && !correctFlash && 'Correct!'}
+            {correctFlash && 'Correct!'}
             {needsConfirmation && `Wrong — tap ${corner.name} to continue`}
             {wasWrong && confirmedCorrect && corner.name}
           </div>
@@ -342,28 +371,20 @@ export default function FlashcardMode({ track, corners, onBack }) {
         <div className="flex flex-col gap-2">
           {choices.map((choice) => {
             let btnClass = 'bg-gray-900 border-gray-700 text-white hover:bg-gray-800';
-            let extra = '';
             let clickable = true;
 
             if (answered) {
               if (choice.id === cornerId) {
-                // Correct answer
-                if (needsConfirmation) {
-                  // Pulsing — waiting for user to tap it
-                  btnClass = 'bg-green-900 border-green-500 text-green-200 animate-pulse';
-                } else {
-                  btnClass = 'bg-green-900 border-green-700 text-green-200';
-                }
+                btnClass = needsConfirmation
+                  ? 'bg-green-900 border-green-500 text-green-200 animate-pulse'
+                  : 'bg-green-900 border-green-700 text-green-200';
               } else if (choice.id === selectedAnswer) {
-                // Wrong pick — red
                 btnClass = 'bg-red-900 border-red-700 text-red-200';
                 clickable = false;
               } else {
                 btnClass = 'bg-gray-900 border-gray-800 text-gray-600';
                 clickable = false;
               }
-
-              // After confirmation, nothing is clickable
               if (confirmedCorrect) clickable = false;
             }
 
@@ -380,9 +401,10 @@ export default function FlashcardMode({ track, corners, onBack }) {
           })}
         </div>
 
-        {/* Post-answer info — only after full confirmation */}
-        {canProceed && (
+        {/* Post-answer info — wrong answers only (correct auto-advances) */}
+        {wasWrong && canProceed && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+            <p className="text-white font-bold text-lg mb-3">{corner.name}</p>
             <div className="flex items-center gap-2 mb-2">
               <span className={`text-xs border px-3 py-1 rounded-full uppercase tracking-wider font-semibold ${TYPE_BADGE[corner.type] || 'bg-gray-800 text-gray-300 border-gray-700'}`}>
                 {corner.type}
@@ -398,16 +420,12 @@ export default function FlashcardMode({ track, corners, onBack }) {
         )}
       </div>
 
-      {/* Next button — only after confirmation */}
-      {canProceed && (
+      {/* Next button — wrong path only (correct auto-advances) */}
+      {wasWrong && canProceed && (
         <div className="mt-6">
           <button
             onClick={handleNext}
-            className={`w-full py-4 rounded-xl font-bold text-lg transition-all active:scale-95 ${
-              wasCorrect
-                ? 'bg-green-600 hover:bg-green-500 text-white'
-                : 'bg-orange-500 hover:bg-orange-400 text-white'
-            }`}
+            className="w-full py-4 rounded-xl font-bold text-lg transition-all active:scale-95 bg-orange-500 hover:bg-orange-400 text-white"
           >
             {currentIndex + 1 >= queue.length ? 'Finish' : 'Next'}
           </button>

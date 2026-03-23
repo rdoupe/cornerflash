@@ -18,6 +18,7 @@ const MODES = [
     description: 'Manually assign corners to labeled frames. Run new-scan-all first.',
     icon: 'DEV',
     accent: 'border-yellow-800 hover:border-yellow-500',
+    devOnly: true,
   },
   {
     id: 'dev-image-pruner',
@@ -25,6 +26,7 @@ const MODES = [
     description: 'Remove individual frames with obvious corner name hints.',
     icon: 'DEV',
     accent: 'border-yellow-800 hover:border-yellow-500',
+    devOnly: true,
   },
   {
     id: 'flashcard',
@@ -70,7 +72,7 @@ function ModeSelector({ track, onSelectMode, onBack }) {
 
       {/* Mode cards */}
       <div className="flex flex-col gap-4">
-        {MODES.map((mode) => (
+        {MODES.filter(m => !m.devOnly || import.meta.env.DEV).map((mode) => (
           <button
             key={mode.id}
             onClick={() => onSelectMode(mode.id)}
@@ -228,11 +230,11 @@ export default function App() {
     );
   }
 
-  if (screen === 'dev-text-matcher') {
+  if (screen === 'dev-text-matcher' && import.meta.env.DEV) {
     return <DevTextMatcher onBack={handleBackToModes} />;
   }
 
-  if (screen === 'dev-image-pruner') {
+  if (screen === 'dev-image-pruner' && import.meta.env.DEV) {
     return <DevImagePruner onBack={handleBackToModes} />;
   }
 

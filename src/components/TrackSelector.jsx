@@ -1,4 +1,8 @@
+import { useState } from 'react';
+
 export default function TrackSelector({ onSelect }) {
+  const [learnOpen, setLearnOpen] = useState(false);
+
   const tracks = [
     {
       id: 'spa',
@@ -67,9 +71,66 @@ export default function TrackSelector({ onSelect }) {
           ))}
         </div>
 
-        <p className="text-center text-gray-700 text-xs mt-8">
-          Powered by SM-2 spaced repetition
-        </p>
+        {/* SM-2 Learning Explainer */}
+        <div className="mt-8">
+          <button
+            onClick={() => setLearnOpen(o => !o)}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-colors hover:bg-gray-900 group"
+          >
+            <div>
+              <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors">
+                How does CornerFlash teach you?
+              </span>
+              <p className="text-xs text-gray-600 mt-0.5">
+                Science-backed — remember more with less practice time
+              </p>
+            </div>
+            <span className={`text-gray-500 text-lg transition-transform duration-200 ${learnOpen ? 'rotate-180' : ''}`}>
+              ▾
+            </span>
+          </button>
+
+          {learnOpen && (
+            <div className="mt-2 bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col gap-4">
+              <div className="flex gap-3">
+                <span className="text-orange-400 text-lg mt-0.5 flex-shrink-0">⟳</span>
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">Spaced Repetition</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    Corners you struggle with come back sooner. Ones you nail get spaced out over days and weeks. Your practice time is always spent where it matters most.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="text-orange-400 text-lg mt-0.5 flex-shrink-0">◎</span>
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">Active Recall</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    You're shown the corner, not the name — forcing your brain to retrieve it. Proven to produce 3× better retention than passive reading or re-watching.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="text-orange-400 text-lg mt-0.5 flex-shrink-0">◈</span>
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">SM-2 Algorithm</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    Each flashcard session schedules your next review automatically. Struggled with a corner? It comes back tomorrow. Nailed it three times? See you next month.
+                  </p>
+                </div>
+              </div>
+              <a
+                href="https://en.wikipedia.org/wiki/SuperMemo#SM-2_algorithm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-orange-400 hover:text-orange-300 transition-colors mt-1 self-start"
+                onClick={e => e.stopPropagation()}
+              >
+                Learn more about SM-2 →
+              </a>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

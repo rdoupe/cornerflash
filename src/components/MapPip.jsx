@@ -9,6 +9,14 @@ const TYPE_COLORS = {
   slow: 'text-blue-400',
 };
 
+// Known start/finish and pit locations per track
+const TRACK_META = {
+  nordschleife: {
+    startFinish: { lat: 50.33815, lng: 6.95294 }, // Hohenrain / TF start line
+    pits: { lat: 50.33750, lng: 6.95260 },
+  },
+};
+
 function VariantA({ corners, currentCornerId }) {
   const current = corners.find((c) => c.id === currentCornerId);
 
@@ -56,7 +64,7 @@ function VariantA({ corners, currentCornerId }) {
   );
 }
 
-function VariantB({ corners, currentCornerId }) {
+function VariantB({ corners, currentCornerId, trackId }) {
   const canvasRef = useRef(null);
 
   // Filter corners with GPS data
@@ -121,7 +129,30 @@ function VariantB({ corners, currentCornerId }) {
         ctx.globalAlpha = 1;
       }
     });
-  }, [corners, currentCornerId, withGps]);
+
+    // Draw start/finish and pits markers
+    const meta = TRACK_META[trackId];
+    if (meta?.startFinish) {
+      const x = toX(meta.startFinish.lng);
+      const y = toY(meta.startFinish.lat);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 6, y);
+      ctx.lineTo(x + 6, y);
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 7px sans-serif';
+      ctx.fillText('S/F', x - 5, y - 3);
+    }
+    if (meta?.pits) {
+      const x = toX(meta.pits.lng);
+      const y = toY(meta.pits.lat);
+      ctx.fillStyle = '#facc15';
+      ctx.font = 'bold 8px sans-serif';
+      ctx.fillText('P', x - 3, y + 3);
+    }
+  }, [corners, currentCornerId, trackId, withGps]);
 
   if (withGps.length === 0) {
     return (
@@ -145,7 +176,7 @@ function VariantB({ corners, currentCornerId }) {
 
 export default function MapPip({ corners, currentCornerId, trackId }) {
   const [variant, setVariant] = useState(() => {
-    return localStorage.getItem(MAP_VARIANT_KEY) || 'A';
+    return localStorage.getItem(MAP_VARIANT_KEY) || 'B';
   });
 
   const toggleVariant = () => {
@@ -160,7 +191,7 @@ export default function MapPip({ corners, currentCornerId, trackId }) {
       {variant === 'A' ? (
         <VariantA corners={corners} currentCornerId={currentCornerId} />
       ) : (
-        <VariantB corners={corners} currentCornerId={currentCornerId} />
+        <VariantB corners={corners} currentCornerId={currentCornerId} trackId={trackId} />
       )}
 
       {/* Toggle button */}

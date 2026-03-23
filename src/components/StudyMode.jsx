@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const TYPE_BADGE = {
   fast: 'bg-red-950 text-red-300 border-red-900',
@@ -6,26 +6,44 @@ const TYPE_BADGE = {
   slow: 'bg-blue-950 text-blue-300 border-blue-900',
 };
 
-function AnimatedImage({ track, cornerId, candidates }) {
-  const startIdx = candidates ? Math.floor(candidates.length / 2) : 0;
-  const [frameIdx, setFrameIdx] = useState(startIdx);
+const FRAME_INTERVAL_MS = 200; // match flashcard speed
+
+function msFromFilename(f) {
+  const m = f.match(/(\d+)ms\.jpg$/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+function sortedFrames(frames) {
+  if (!frames || !Array.isArray(frames)) return null;
+  return [...frames].sort((a, b) => msFromFilename(a) - msFromFilename(b));
+}
+
+function AnimatedImage({ track, cornerId, frames }) {
+  const [frameIdx, setFrameIdx] = useState(0);
   const [useFallback, setUseFallback] = useState(false);
+  const intervalRef = useRef(null);
 
   useEffect(() => {
-    setFrameIdx(candidates ? Math.floor(candidates.length / 2) : 0);
+    setFrameIdx(0);
     setUseFallback(false);
-  }, [cornerId, candidates]);
+  }, [cornerId]);
 
   useEffect(() => {
-    if (!candidates || candidates.length <= 1) return;
-    const timer = setInterval(() => setFrameIdx((i) => (i + 1) % candidates.length), 900);
-    return () => clearInterval(timer);
-  }, [candidates]);
+    if (!frames || frames.length <= 1) return;
+    intervalRef.current = setInterval(() => {
+      setFrameIdx((i) => (i + 1) % frames.length);
+    }, FRAME_INTERVAL_MS);
+    return () => clearInterval(intervalRef.current);
+  }, [frames]);
 
-  const hasCandidates = candidates && candidates.length > 0 && !useFallback;
-  const src = hasCandidates
-    ? `/candidates_new/${cornerId}/${candidates[frameIdx].filename}`
+  const hasFrames = frames && frames.length > 0 && !useFallback;
+  const src = hasFrames
+    ? `/candidates_new/${cornerId}/${frames[frameIdx]}`
     : `/images/corners/${track}/${cornerId}.jpg`;
+
+  const loopProgress = frames && frames.length > 1
+    ? (frameIdx / (frames.length - 1)) * 100
+    : null;
 
   return (
     <div className="relative w-full rounded-xl overflow-hidden bg-gray-800 mb-6" style={{ minHeight: 180 }}>
@@ -36,19 +54,14 @@ function AnimatedImage({ track, cornerId, candidates }) {
         style={{ minHeight: 180, maxHeight: 260 }}
         onError={() => setUseFallback(true)}
       />
-      {hasCandidates && candidates.length > 1 && (
-        <>
-          {candidates.length <= 20 && (
-            <div className="absolute top-2 left-2 flex gap-0.5">
-              {candidates.map((_, i) => (
-                <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === frameIdx ? 'bg-white' : 'bg-white/25'}`} />
-              ))}
-            </div>
-          )}
-          <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-mono rounded px-1.5 py-0.5">
-            {frameIdx + 1}/{candidates.length}
-          </div>
-        </>
+      {/* Animation progress bar */}
+      {loopProgress !== null && (
+        <div className="absolute top-0 left-0 w-full h-1 overflow-hidden pointer-events-none">
+          <div
+            className="h-full bg-orange-500/70"
+            style={{ width: `${loopProgress}%`, transition: 'none' }}
+          />
+        </div>
       )}
     </div>
   );
@@ -62,12 +75,19 @@ export default function StudyMode({ track, corners, onBack }) {
     fetch('/candidates_new/manifest.json').then(r => r.ok ? r.json() : {}).then(setCandidatesManifest).catch(() => {});
   }, []);
 
+  // Play German pronunciation when corner changes
+  useEffect(() => {
+    if (!corners || !corners[index]) return;
+    const audio = new Audio(`/audio/${track}/${corners[index].id}.mp3`);
+    audio.play().catch(() => {});
+  }, [index, track]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!corners || corners.length === 0) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-4">
         <p className="text-gray-400">No corners available for this track.</p>
         <button onClick={onBack} className="mt-6 text-orange-400 hover:text-orange-300 text-sm">
-          ← Back
+          Back
         </button>
       </div>
     );
@@ -107,41 +127,28 @@ export default function StudyMode({ track, corners, onBack }) {
       <AnimatedImage
         track={track}
         cornerId={corner.id}
-        candidates={
-          corner.id === 'tiergarten'
-            ? null
-            : (candidatesManifest[corner.id]?.candidates ?? null)
-        }
+        frames={sortedFrames(candidatesManifest[corner.id])}
       />
 
       {/* Corner card */}
       <div className="flex-1 flex flex-col">
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 flex-1 flex flex-col justify-center">
-          {/* Order badge */}
           <div className="text-gray-600 text-xs font-mono uppercase tracking-widest mb-2">
             Corner #{corner.order}
           </div>
-
-          {/* Name */}
           <h2 className="text-3xl font-black text-white leading-tight mb-4">
             {corner.name}
           </h2>
-
-          {/* Type badge */}
           <div className="mb-6">
             <span className={`text-xs border px-3 py-1 rounded-full uppercase tracking-wider font-semibold ${typeBadge}`}>
               {corner.type}
             </span>
           </div>
-
-          {/* Notes */}
           {corner.notes && (
             <p className="text-gray-300 text-base leading-relaxed border-t border-gray-800 pt-5 mt-2">
               {corner.notes}
             </p>
           )}
-
-          {/* GPS indicator */}
           {corner.gps ? (
             <div className="mt-4 text-xs text-gray-600 font-mono">
               GPS: {corner.gps.lat.toFixed(5)}, {corner.gps.lng.toFixed(5)}
@@ -170,7 +177,6 @@ export default function StudyMode({ track, corners, onBack }) {
         </button>
       </div>
 
-      {/* Done state */}
       {index === total - 1 && (
         <p className="text-center text-green-400 text-sm mt-4">
           You've reviewed all {total} corners!

@@ -9,6 +9,16 @@ const NEW_INTRODUCED_KEY = (trackId) => `cornerflash:new_today:${trackId}`;
 const CORRECT_FLASH_MS = 1200;
 const FRAME_INTERVAL_MS = 200; // ~5 fps
 
+function msFromFilename(f) {
+  const m = f.match(/(\d+)ms\.jpg$/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+function sortedFrames(frames) {
+  if (!frames) return null;
+  return [...frames].sort((a, b) => msFromFilename(a) - msFromFilename(b));
+}
+
 const TYPE_BADGE = {
   fast: 'bg-red-950 text-red-300 border-red-900',
   medium: 'bg-yellow-950 text-yellow-300 border-yellow-900',
@@ -42,7 +52,6 @@ function shuffleArray(arr) {
 }
 
 function pickDistractors(correctCorner, allCorners, count) {
-  // Prefer same type for harder distractors, fall back to any
   const sameType = allCorners.filter(c => c.id !== correctCorner.id && c.type === correctCorner.type);
   const others = allCorners.filter(c => c.id !== correctCorner.id && c.type !== correctCorner.type);
   const pool = [...shuffleArray(sameType), ...shuffleArray(others)];
@@ -54,13 +63,11 @@ function CornerImage({ trackId, cornerId, frames, answered, correctFlash }) {
   const [imgError, setImgError] = useState(false);
   const intervalRef = useRef(null);
 
-  // Reset frame + error when corner changes
   useEffect(() => {
     setFrameIndex(0);
     setImgError(false);
   }, [cornerId]);
 
-  // Animate through frames
   useEffect(() => {
     if (!frames || frames.length <= 1) return;
     intervalRef.current = setInterval(() => {
@@ -81,6 +88,10 @@ function CornerImage({ trackId, cornerId, frames, answered, correctFlash }) {
     ? `/candidates_new/${cornerId}/${frames[frameIndex]}`
     : `/images/corners/${trackId}/${cornerId}.jpg`;
 
+  const loopProgress = frames && frames.length > 1
+    ? (frameIndex / (frames.length - 1)) * 100
+    : null;
+
   return (
     <div className="relative">
       <img
@@ -90,11 +101,20 @@ function CornerImage({ trackId, cornerId, frames, answered, correctFlash }) {
         style={{ minHeight: 200, maxHeight: 280 }}
         onError={() => setImgError(true)}
       />
+      {/* Animation progress bar — top of image, shows loop position */}
+      {loopProgress !== null && (
+        <div className="absolute top-0 left-0 w-full h-1 rounded-t-xl overflow-hidden pointer-events-none">
+          <div
+            className="h-full bg-orange-500/70"
+            style={{ width: `${loopProgress}%`, transition: 'none' }}
+          />
+        </div>
+      )}
       {/* Black bar — hides corner name label until answered */}
       {!answered && (
         <div
-          className="absolute top-0 left-0 w-full rounded-t-xl pointer-events-none"
-          style={{ height: '20%', background: '#000' }}
+          className="absolute bottom-0 left-0 w-full rounded-b-xl pointer-events-none"
+          style={{ height: '40%', background: '#000' }}
         />
       )}
       {/* Correct flash overlay */}
@@ -111,8 +131,10 @@ export default function FlashcardMode({ track, corners, onBack }) {
   const [progress, setProgress] = useState({});
   const [queue, setQueue] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [confirmedCorrect, setConfirmedCorrect] = useState(false);
+  // wrongGuesses: Set of choice IDs the user has tried and got wrong this card
+  const [wrongGuesses, setWrongGuesses] = useState(new Set());
+  // solved: true once the correct answer has been found
+  const [solved, setSolved] = useState(false);
   const [correctFlash, setCorrectFlash] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sessionDone, setSessionDone] = useState(false);
@@ -120,11 +142,9 @@ export default function FlashcardMode({ track, corners, onBack }) {
   const [choices, setChoices] = useState([]);
   const [candidatesManifest, setCandidatesManifest] = useState({});
 
-  // Keep a ref to progress so the queue-build effect doesn't depend on it
   const progressRef = useRef({});
   useEffect(() => { progressRef.current = progress; }, [progress]);
 
-  // Load candidates manifest for animation frames
   useEffect(() => {
     fetch('/candidates_new/manifest.json')
       .then((r) => r.ok ? r.json() : {})
@@ -132,7 +152,6 @@ export default function FlashcardMode({ track, corners, onBack }) {
       .catch(() => {});
   }, []);
 
-  // Load progress on mount
   useEffect(() => {
     let cancelled = false;
     loadAllProgress(track).then((prog) => {
@@ -167,7 +186,6 @@ export default function FlashcardMode({ track, corners, onBack }) {
 
     const newAllowed = Math.max(0, MAX_NEW_PER_DAY - newUsed);
     const newToShow = newCards.slice(0, newAllowed);
-
     const q = [...due, ...newToShow];
 
     if (q.length === 0) {
@@ -177,9 +195,19 @@ export default function FlashcardMode({ track, corners, onBack }) {
       setCurrentIndex(0);
       setSessionDone(false);
     }
-  }, [loading, corners, track]); // ← progress intentionally excluded
+  }, [loading, corners, track]); // progress intentionally excluded
 
-  // Generate choices whenever current card changes
+  // Play German pronunciation on solve (reveal only — doesn't spoil the quiz)
+  // Only depends on `solved` so it fires on true→false→true transitions, not on card advance
+  useEffect(() => {
+    if (!solved) return;
+    const cornerId = queue[currentIndex];
+    if (!cornerId) return;
+    const audio = new Audio(`/audio/${track}/${cornerId}.mp3`);
+    audio.play().catch(() => {});
+  }, [solved]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset card state on each new card
   useEffect(() => {
     if (queue.length === 0 || currentIndex >= queue.length) return;
 
@@ -190,8 +218,8 @@ export default function FlashcardMode({ track, corners, onBack }) {
     const distractors = pickDistractors(corner, corners, NUM_CHOICES - 1);
     const allChoices = shuffleArray([corner, ...distractors]);
     setChoices(allChoices);
-    setSelectedAnswer(null);
-    setConfirmedCorrect(false);
+    setWrongGuesses(new Set());
+    setSolved(false);
     setCorrectFlash(false);
   }, [queue, currentIndex, corners]);
 
@@ -206,42 +234,54 @@ export default function FlashcardMode({ track, corners, onBack }) {
 
   const handleAnswer = useCallback(async (chosenId) => {
     const cornerId = queue[currentIndex];
+    if (solved) return;
+    if (wrongGuesses.has(chosenId)) return; // Already eliminated
 
-    // Phase 2: user got it wrong and is now tapping the correct answer to confirm
-    if (selectedAnswer !== null && selectedAnswer !== cornerId && chosenId === cornerId) {
-      setConfirmedCorrect(true);
+    const isCorrect = chosenId === cornerId;
+    const hadWrong = wrongGuesses.size > 0;
+
+    if (!isCorrect) {
+      const newWrong = new Set([...wrongGuesses, chosenId]);
+      setWrongGuesses(newWrong);
+
+      // Save to SM-2 on the first mistake only
+      if (!hadWrong) {
+        const existing = progress[cornerId];
+        const card = existing || createCard(cornerId, track);
+        if (!existing) {
+          incrementNewToday(track);
+          setNewCountToday((n) => n + 1);
+        }
+        const updated = reviewCard(card, 1);
+        await saveProgress(cornerId, track, updated);
+        setProgress((prev) => ({ ...prev, [cornerId]: updated }));
+      }
       return;
     }
 
-    if (selectedAnswer !== null) return; // Already answered, ignore taps
+    // Correct answer found
+    setSolved(true);
 
-    const isCorrect = chosenId === cornerId;
-    setSelectedAnswer(chosenId);
+    if (!hadWrong) {
+      // Perfect — save as correct, flash and auto-advance
+      const existing = progress[cornerId];
+      const card = existing || createCard(cornerId, track);
+      if (!existing) {
+        incrementNewToday(track);
+        setNewCountToday((n) => n + 1);
+      }
+      const updated = reviewCard(card, 4);
+      await saveProgress(cornerId, track, updated);
+      setProgress((prev) => ({ ...prev, [cornerId]: updated }));
 
-    if (isCorrect) {
-      setConfirmedCorrect(true);
-      // Flash green, then auto-advance
       setCorrectFlash(true);
       setTimeout(() => {
         setCorrectFlash(false);
         handleNext();
       }, CORRECT_FLASH_MS);
     }
-
-    const existing = progress[cornerId];
-    const card = existing || createCard(cornerId, track);
-
-    if (!existing) {
-      incrementNewToday(track);
-      setNewCountToday((n) => n + 1);
-    }
-
-    const rating = isCorrect ? 4 : 1;
-    const updated = reviewCard(card, rating);
-    await saveProgress(cornerId, track, updated);
-
-    setProgress((prev) => ({ ...prev, [cornerId]: updated }));
-  }, [queue, currentIndex, progress, track, selectedAnswer, handleNext]);
+    // Wrong path: SM-2 already saved as wrong — just reveal info panel + Next button
+  }, [queue, currentIndex, progress, track, wrongGuesses, solved, handleNext]);
 
   if (loading) {
     return (
@@ -302,12 +342,8 @@ export default function FlashcardMode({ track, corners, onBack }) {
     );
   }
 
-  const answered = selectedAnswer !== null;
-  const wasCorrect = selectedAnswer === cornerId;
-  const wasWrong = answered && !wasCorrect;
-  const needsConfirmation = wasWrong && !confirmedCorrect;
-  const canProceed = answered && confirmedCorrect;
-
+  const answered = solved || wrongGuesses.size > 0;
+  const hadWrong = wrongGuesses.size > 0;
   const card = progress[corner.id];
   const isNew = !card;
 
@@ -346,23 +382,21 @@ export default function FlashcardMode({ track, corners, onBack }) {
 
       {/* Card area */}
       <div className="flex-1 flex flex-col gap-4">
-        {/* Image with black bar + flash overlay */}
         <CornerImage
           trackId={track}
           cornerId={corner.id}
-          frames={candidatesManifest[corner.id] || null}
-          answered={answered}
+          frames={sortedFrames(candidatesManifest[corner.id])}
+          answered={solved}
           correctFlash={correctFlash}
         />
 
         {/* Map pip + prompt */}
         <div className="flex items-center justify-between">
-          <div className={`text-sm font-medium ${wasCorrect ? 'text-green-400' : wasWrong ? 'text-red-400' : 'text-gray-400'}`}>
+          <div className={`text-sm font-medium ${solved && !hadWrong ? 'text-green-400' : hadWrong ? 'text-red-400' : 'text-gray-400'}`}>
             {!answered && 'What corner is this?'}
-            {wasCorrect && !correctFlash && 'Correct!'}
-            {correctFlash && 'Correct!'}
-            {needsConfirmation && `Wrong — tap ${corner.name} to continue`}
-            {wasWrong && confirmedCorrect && corner.name}
+            {solved && !hadWrong && 'Correct!'}
+            {hadWrong && !solved && 'Try again'}
+            {hadWrong && solved && corner.name}
           </div>
           <MapPip corners={corners} currentCornerId={corner.id} trackId={track} />
         </div>
@@ -370,22 +404,17 @@ export default function FlashcardMode({ track, corners, onBack }) {
         {/* Multiple choice buttons */}
         <div className="flex flex-col gap-2">
           {choices.map((choice) => {
+            const isEliminated = wrongGuesses.has(choice.id);
+            const isCorrectChoice = choice.id === cornerId;
             let btnClass = 'bg-gray-900 border-gray-700 text-white hover:bg-gray-800';
-            let clickable = true;
+            let clickable = !solved && !isEliminated;
 
-            if (answered) {
-              if (choice.id === cornerId) {
-                btnClass = needsConfirmation
-                  ? 'bg-green-900 border-green-500 text-green-200 animate-pulse'
-                  : 'bg-green-900 border-green-700 text-green-200';
-              } else if (choice.id === selectedAnswer) {
-                btnClass = 'bg-red-900 border-red-700 text-red-200';
-                clickable = false;
-              } else {
-                btnClass = 'bg-gray-900 border-gray-800 text-gray-600';
-                clickable = false;
-              }
-              if (confirmedCorrect) clickable = false;
+            if (isEliminated) {
+              btnClass = 'bg-red-900 border-red-800 text-red-300 line-through';
+            } else if (solved && isCorrectChoice) {
+              btnClass = 'bg-green-900 border-green-700 text-green-200';
+            } else if (solved) {
+              btnClass = 'bg-gray-900 border-gray-800 text-gray-600';
             }
 
             return (
@@ -401,8 +430,8 @@ export default function FlashcardMode({ track, corners, onBack }) {
           })}
         </div>
 
-        {/* Post-answer info — wrong answers only (correct auto-advances) */}
-        {wasWrong && canProceed && (
+        {/* Post-answer info — wrong path only */}
+        {hadWrong && solved && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
             <p className="text-white font-bold text-lg mb-3">{corner.name}</p>
             <div className="flex items-center gap-2 mb-2">
@@ -420,8 +449,8 @@ export default function FlashcardMode({ track, corners, onBack }) {
         )}
       </div>
 
-      {/* Next button — wrong path only (correct auto-advances) */}
-      {wasWrong && canProceed && (
+      {/* Next button — wrong path only */}
+      {hadWrong && solved && (
         <div className="mt-6">
           <button
             onClick={handleNext}

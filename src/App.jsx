@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import TrackSelector from './components/TrackSelector.jsx';
 import DevTextMatcher from './components/DevTextMatcher.jsx';
+import DevImagePruner from './components/DevImagePruner.jsx';
 import StudyMode from './components/StudyMode.jsx';
 import FlashcardMode from './components/FlashcardMode.jsx';
 import ProgressView from './components/ProgressView.jsx';
@@ -15,6 +16,13 @@ const MODES = [
     id: 'dev-text-matcher',
     label: 'Dev: Text Matcher',
     description: 'Manually assign corners to labeled frames. Run new-scan-all first.',
+    icon: 'DEV',
+    accent: 'border-yellow-800 hover:border-yellow-500',
+  },
+  {
+    id: 'dev-image-pruner',
+    label: 'Dev: Image Pruner',
+    description: 'Remove individual frames with obvious corner name hints.',
     icon: 'DEV',
     accent: 'border-yellow-800 hover:border-yellow-500',
   },
@@ -222,6 +230,10 @@ export default function App() {
 
   if (screen === 'dev-text-matcher') {
     return <DevTextMatcher onBack={handleBackToModes} />;
+  }
+
+  if (screen === 'dev-image-pruner') {
+    return <DevImagePruner onBack={handleBackToModes} />;
   }
 
   // Fallback

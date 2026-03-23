@@ -8,6 +8,7 @@ const NUM_CHOICES = 4;
 const NEW_INTRODUCED_KEY = (trackId) => `cornerflash:new_today:${trackId}`;
 const CORRECT_FLASH_MS = 1200;
 const FRAME_INTERVAL_MS = 200; // ~5 fps
+const CANDIDATES_BASE = import.meta.env.VITE_CANDIDATES_BASE || '/candidates_new';
 
 function msFromFilename(f) {
   const m = f.match(/(\d+)ms\.jpg$/);
@@ -85,7 +86,7 @@ function CornerImage({ trackId, cornerId, frames, answered, correctFlash }) {
   }
 
   const src = frames && frames.length > 0
-    ? `/candidates_new/${cornerId}/${frames[frameIndex]}`
+    ? `${CANDIDATES_BASE}/${cornerId}/${frames[frameIndex]}`
     : `/images/corners/${trackId}/${cornerId}.jpg`;
 
   const loopProgress = frames && frames.length > 1
@@ -146,7 +147,7 @@ export default function FlashcardMode({ track, corners, onBack }) {
   useEffect(() => { progressRef.current = progress; }, [progress]);
 
   useEffect(() => {
-    fetch('/candidates_new/manifest.json')
+    fetch(`${CANDIDATES_BASE}/manifest.json`)
       .then((r) => r.ok ? r.json() : {})
       .then((data) => setCandidatesManifest(data))
       .catch(() => {});

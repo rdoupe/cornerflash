@@ -7,6 +7,7 @@ const TYPE_BADGE = {
 };
 
 const FRAME_INTERVAL_MS = 200; // match flashcard speed
+const CANDIDATES_BASE = import.meta.env.VITE_CANDIDATES_BASE || '/candidates_new';
 
 function msFromFilename(f) {
   const m = f.match(/(\d+)ms\.jpg$/);
@@ -38,7 +39,7 @@ function AnimatedImage({ track, cornerId, frames }) {
 
   const hasFrames = frames && frames.length > 0 && !useFallback;
   const src = hasFrames
-    ? `/candidates_new/${cornerId}/${frames[frameIdx]}`
+    ? `${CANDIDATES_BASE}/${cornerId}/${frames[frameIdx]}`
     : `/images/corners/${track}/${cornerId}.jpg`;
 
   const loopProgress = frames && frames.length > 1
@@ -72,7 +73,7 @@ export default function StudyMode({ track, corners, onBack }) {
   const [candidatesManifest, setCandidatesManifest] = useState({});
 
   useEffect(() => {
-    fetch('/candidates_new/manifest.json').then(r => r.ok ? r.json() : {}).then(setCandidatesManifest).catch(() => {});
+    fetch(`${CANDIDATES_BASE}/manifest.json`).then(r => r.ok ? r.json() : {}).then(setCandidatesManifest).catch(() => {});
   }, []);
 
   // Play German pronunciation when corner changes

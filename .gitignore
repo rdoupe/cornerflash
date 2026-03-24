@@ -18,3 +18,13 @@ frames_new/
 public/candidates_new/
 
 .vercel
+
+# Android
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+android/app/src/main/res/drawable*/
+android/app/src/main/res/mipmap*/
+*.jks
+*.keystore
